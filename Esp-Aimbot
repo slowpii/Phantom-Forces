@@ -1,104 +1,182 @@
 -- NONE OF THIS WAS MADE BY ME, IM ONLY SAVING IT HERE SO IT DOESNT GET DELETED IN THE FUTURE.
 
-assert(Drawing, "missing dependency: drawing")
-repeat
-	task.wait()
-until game:IsLoaded()
--- Services
-local players = game:GetService("Players")
-local run_service = game:GetService("RunService")
--- Localizing
-local local_player = players.LocalPlayer
-local get_children = game.GetChildren
-local find_first_child = game.FindFirstChild
-local new_drawing = Drawing.new
-local camera = workspace.CurrentCamera or game:GetService("Workspace").CurrentCamera
+local UIS = game:GetService("UserInputService")
+UIS.InputBegan:Connect(function(i,gpe)
+	if i.KeyCode == _G.switchKey and gpe == false then
+		_G.sex = not _G.sex
+	end
+end)
 
--- Setup
-local rootPart = "Head"
-local objects_folder: Folder = game:GetService("Workspace").Players
-local coreGui = game:GetService("CoreGui")
--- main
-local object_ID = {}
-local eps = {}
+function raycast(plr, hitbox)
+	local blacklistTable = { game:GetService("Players").LocalPlayer.Character }
+	for _, obj in pairs(workspace.CurrentCamera:GetChildren()) do
+		if obj:IsA("Model") then
+			table.insert(blacklistTable, obj)
+		end
+	end
+	rayxd = Ray.new(workspace.CurrentCamera.CFrame.p, plr.Torso.CFrame.p - workspace.CurrentCamera.CFrame.p)
+	result = workspace:FindPartOnRayWithIgnoreList(rayxd, blacklistTable)
 
-local function Setup()
-	for _, team in pairs(objects_folder:GetChildren()) do
-		for _, object in pairs(get_children(team)) do
-			local id = object:GetDebugId()
-			if not table.find(object_ID, id) then
-				table.insert(object_ID, id)
-				eps[id] = {
-					esp_object = object,
-					text_esp = new_drawing("Text", true),
-					highlight = Instance.new("Highlight", coreGui),
-				}
-				eps[id].text_esp.Center = true
-				eps[id].text_esp.Outline = true
-				eps[id].text_esp.Font = 1
-				eps[id].text_esp.Size = 14
-				eps[id].highlight.Adornee = eps[id].esp_object
-				eps[id].highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-				eps[id].highlight.Enabled = true
-				eps[id].highlight.FillTransparency = true
+	-- W.I.P --
+	if result.Transparency ~= 0 then
+		local blacklistTable2 = { game:GetService("Players").LocalPlayer.Character,result }
+		for _, obj in pairs(workspace.CurrentCamera:GetChildren()) do
+			if obj:IsA("Model") then
+				table.insert(blacklistTable2, obj)
 			end
 		end
+		rayxd2 = Ray.new(workspace.CurrentCamera.CFrame.p, plr.Torso.CFrame.p - workspace.CurrentCamera.CFrame.p)
+		result2 = workspace:FindPartOnRayWithIgnoreList(rayxd2, blacklistTable2)
+		if result2.Parent == plr then
+			hitbox.OutlineColor = Color3.fromRGB(0, 255, 0)
+			hitbox.FillColor = Color3.fromRGB(16, 255, 16)
+		else
+			hitbox.OutlineColor = Color3.fromRGB(255, 0, 0)
+			hitbox.FillColor = Color3.fromRGB(255, 16, 16)
+		end
+	end
+	-- W.I.P --
+
+	if result.Parent == plr then
+		hitbox.OutlineColor = Color3.fromRGB(0, 255, 0)
+		hitbox.FillColor = Color3.fromRGB(16, 255, 16)
+	else
+		hitbox.OutlineColor = Color3.fromRGB(255, 0, 0)
+		hitbox.FillColor = Color3.fromRGB(255, 16, 16)
 	end
 end
 
-Setup()
-shared.max_distance = math.huge
-shared.object_esp_enabled = true
-run_service.RenderStepped:Connect(function()
-	if not shared.object_esp_enabled then
-		return
-	end
-	for _, value in pairs(eps) do
-		if
-			shared.object_esp_enabled
-			and find_first_child(value.esp_object, rootPart)
-			and value.esp_object.Parent.Name ~= local_player.TeamColor.Name
-		then
-			local name = value.esp_object.Name
-			local vec3_position = find_first_child(value.esp_object, rootPart).Position
-			local screen_position, on_screen = camera:WorldToScreenPoint(vec3_position)
-			local distant_from_character = local_player:DistanceFromCharacter(vec3_position)
-			if on_screen and math.round(distant_from_character) <= shared.max_distance then
-				value.text_esp.Position = Vector2.new(
-					screen_position.X,
-					screen_position.Y + math.clamp(distant_from_character / 10, 10, 30) - 10
-				)
-				value.text_esp.Color = Color3.fromHSV(math.clamp(distant_from_character / 5, 0, 125) / 255, 0.75, 1)
-				value.text_esp.Text = name .. "[" .. math.round(distant_from_character) .. "]"
-				value.text_esp.Size = math.clamp(30 - distant_from_character / 10, 16, 30)
-				value.text_esp.Transparency = math.clamp((500 - distant_from_character) / 200, 0.2, 1)
-				value.text_esp.Visible = true
-				value.highlight.FillColor =
-					Color3.fromHSV(math.clamp(distant_from_character / 5, 0, 125) / 255, 0.75, 1)
-				value.highlight.FillTransparency = math.clamp((500 - distant_from_character) / 200, 0.2, 1)
+function create(plr)
+	local folder = Instance.new("Folder", game.CoreGui)
+	folder.Name = plr.Name
 
-				value.highlight.Enabled = true
-			else
-				value.text_esp.Visible = false
-				value.highlight.Enabled = false
+	local BillboardGui = Instance.new("BillboardGui")
+	--local TextLabel = Instance.new("TextLabel")
+
+	BillboardGui.Parent = folder
+	BillboardGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	BillboardGui.Active = false
+	BillboardGui.Adornee = plr
+	BillboardGui.AlwaysOnTop = false
+	BillboardGui.ExtentsOffset = Vector3.new(0, 1.649999976158142, 0)
+	BillboardGui.LightInfluence = 1.000
+	BillboardGui.Size = UDim2.new(5, 0, 1, 0)
+
+	--[[
+			TextLabel.Parent = BillboardGui
+			TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+			TextLabel.BackgroundTransparency = 1.000
+			TextLabel.Position = UDim2.new(0, 0, 0.5, 0)
+			TextLabel.Size = UDim2.new(1, 0, 0.5, 0)
+			TextLabel.Font = Enum.Font.Arcade
+			TextLabel.Text = plr.Name
+			TextLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+			TextLabel.TextScaled = true
+			TextLabel.TextSize = 0.1
+			TextLabel.TextStrokeTransparency = 0.000
+			TextLabel.TextWrapped = true
+			TextLabel.Visible = false
+			]]
+
+	local dist = Instance.new("BillboardGui")
+	local TextLabel = Instance.new("TextLabel")
+
+	dist.Name = "dist"
+	dist.Parent = folder
+	dist.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	dist.Active = false
+	dist.Adornee = plr
+	dist.AlwaysOnTop = false
+	dist.LightInfluence = 1.000
+	dist.Size = UDim2.new(4, 0, 1, 0)
+
+	TextLabel.Parent = dist
+	TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	TextLabel.BackgroundTransparency = 1.000
+	TextLabel.BorderColor3 = Color3.fromRGB(27, 42, 53)
+	TextLabel.Size = UDim2.new(1, 0, 1, 0)
+	TextLabel.Font = Enum.Font.SourceSans
+	TextLabel.Text = "0 studs"
+	TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	TextLabel.TextScaled = false
+	TextLabel.TextSize = 0.1
+	TextLabel.TextStrokeTransparency = 0.000
+	TextLabel.TextWrapped = true
+	TextLabel.Visible = false
+
+	local hitbox = Instance.new("Highlight", folder)
+	hitbox.Adornee = plr
+	hitbox.OutlineColor = Color3.new(255, 0, 0)
+	hitbox.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	hitbox.FillColor = Color3.fromRGB(172, 16, 16)
+	hitbox.FillTransparency = .4
+
+	task.spawn(function()
+		local hah
+		hah = game:GetService("RunService").Heartbeat:Connect(function(step)
+			if plr.Name == "Dead" or not plr.External or plr.Parent == workspace.Ignore.DeadBody or _G.sex == false then
+				folder:Destroy()
+				hah:Disconnect()
 			end
-		else
-			value.text_esp.Visible = false
-			value.highlight.Enabled = false
+			local dist = (workspace.CurrentCamera.CFrame.p - plr.Torso.CFrame.p).Magnitude
+			TextLabel.Text = string.format("%.1f", dist) .. " studs"
+			raycast(plr, hitbox)
+		end)
+	end)
+end
+
+function xd(reset)
+	local enemyTeam = reset
+	local connection
+
+	if game:GetService("Players").LocalPlayer.Team.Name == "Phantoms" then
+		enemyTeam = "Ghosts"
+	else
+		enemyTeam = "Phantoms"
+	end
+	if enemyTeam == "Ghosts" then
+		for _, plr in pairs(workspace.Players:FindFirstChild("Bright orange"):GetChildren()) do
+			create(plr)
 		end
+		connection = workspace.Players:FindFirstChild("Bright orange").ChildAdded:Connect(function(plr)
+			create(plr)
+		end)
+	elseif enemyTeam == "Phantoms" then
+		for _, plr in pairs(workspace.Players:FindFirstChild("Bright blue"):GetChildren()) do
+			create(plr)
+		end
+		connection = workspace.Players:FindFirstChild("Bright blue").ChildAdded:Connect(function(plr)
+			create(plr)
+		end)
 	end
-end)
-objects_folder.DescendantAdded:Connect(function()
-	Setup()
-end)
-objects_folder.DescendantRemoving:Connect(function(child)
-	local id = child:GetDebugId()
-	if table.find(object_ID, id) then
-		eps[id].text_esp:Remove()
-		eps[id].highlight:Destroy()
-		eps[id].esp_object = nil
-		eps[id] = nil
-	end
-end)
+
+	task.spawn(function()
+		local hoh
+		hoh = game:GetService("RunService").Heartbeat:Connect(function(step)
+			if game:GetService("Players").LocalPlayer.Team.Name == enemyTeam or _G.sex == false then
+				connection:Disconnect()
+				hoh:Disconnect()
+				for _, f in pairs(game.CoreGui:GetChildren()) do
+					if f.Name == "Player" then
+						f:Destroy()
+					end
+				end
+				check()
+			end
+		end)
+	end)
+end
+
+function check()
+	local heh
+	heh = game:GetService("RunService").Heartbeat:Connect(function(step)
+		if _G.sex == true then
+			heh:Disconnect()
+			xd("")
+		end
+	end)
+end
+
+check()
 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/zzerexx/scripts/main/UniversalAimbotUI.lua"))()
